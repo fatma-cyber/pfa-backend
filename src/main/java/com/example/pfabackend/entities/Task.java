@@ -40,9 +40,7 @@ public class Task {
     private LocalDate deadline;  // Date limite
     private String color;        // Couleur de la carte pour l'affichage
     private Integer storyPoints; // Points d'histoire (pour l'estimation agile)
-    
-    @OneToMany(mappedBy = "parentTask", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SubTask> subTasks = new ArrayList<>();
+   
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
@@ -50,16 +48,7 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Document> documents = new ArrayList<>();
 
-    // Méthodes utilitaires
-    public void addSubTask(SubTask subTask) {
-        subTasks.add(subTask);
-        subTask.setParentTask(this);
-    }
-
-    public void removeSubTask(SubTask subTask) {
-        subTasks.remove(subTask);
-        subTask.setParentTask(null);
-    }
+   
     
     // Méthodes utilitaires pour les commentaires
     public void addComment(Comment comment) {

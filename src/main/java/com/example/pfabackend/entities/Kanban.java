@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,13 @@ public class Kanban {
     
     private String name;
     private String description;
+    
+    private LocalDate startDate;    // Date de début du projet/kanban
+    private LocalDate endDate;      // Date de fin prévue
+    
+    @ManyToOne
+    @JoinColumn(name = "creator_id")
+    private User creator;           // Utilisateur qui a créé le kanban
     
     @OneToMany(mappedBy = "kanban", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ColumnKanban> columns = new ArrayList<>();
