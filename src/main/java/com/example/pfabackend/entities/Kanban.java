@@ -30,18 +30,19 @@ public class Kanban {
     @JoinColumn(name = "creator_id")
     private User creator;           // Utilisateur qui a créé le kanban
     
+    
     @OneToMany(mappedBy = "kanban", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ColumnKanban> columns = new ArrayList<>();
+    private List<Task> tasks = new ArrayList<>();
     
     // Méthode utilitaire pour ajouter une colonne
-    public void addColumn(ColumnKanban column) {
-        columns.add(column);
-        column.setKanban(this);
-    }
+   
     
-    // Méthode utilitaire pour supprimer une colonne
-    public void removeColumn(ColumnKanban column) {
-        columns.remove(column);
-        column.setKanban(null);
+    public void addTask(Task task) {
+        tasks.add(task);
+        task.setKanban(this);
+    }
+    public void removeTask(Task task) {
+        tasks.remove(task);
+        task.setKanban(null);
     }
 }
