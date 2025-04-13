@@ -29,9 +29,6 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private Priority priority;   // Priorité de la tâche
     
-    @ManyToOne
-    @JoinColumn(name = "column_id")
-    private ColumnKanban column; // Colonne à laquelle cette tâche appartient
     
     @ManyToOne
     @JoinColumn(name = "assignee_id")
@@ -48,7 +45,10 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Document> documents = new ArrayList<>();
 
-   
+    @ManyToOne
+    @JoinColumn(name = "kanban_id")
+    private Kanban kanban;    // Utilisateur assigné à cette tâche
+    
     
     // Méthodes utilitaires pour les commentaires
     public void addComment(Comment comment) {
