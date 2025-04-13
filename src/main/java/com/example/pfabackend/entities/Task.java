@@ -29,7 +29,7 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private Priority priority;   // Priorité de la tâche
     
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "column_id")
     private ColumnKanban column; // Colonne à laquelle cette tâche appartient
     
