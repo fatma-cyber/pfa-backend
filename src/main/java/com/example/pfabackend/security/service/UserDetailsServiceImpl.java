@@ -1,4 +1,4 @@
-package com.example.pfabackend.security.services;
+package com.example.pfabackend.security.service;
 
 import com.example.pfabackend.entities.User;
 import com.example.pfabackend.repositories.UserRepository;
