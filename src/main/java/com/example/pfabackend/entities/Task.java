@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Getter
 @Setter
@@ -38,10 +40,11 @@ public class Task {
     private String color;        // Couleur de la carte pour l'affichage
     private Integer storyPoints; // Points d'histoire (pour l'estimation agile)
    
-
+    @JsonIgnore
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
     
+    @JsonIgnore
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Document> documents = new ArrayList<>();
 
@@ -76,7 +79,7 @@ public class Task {
     public enum Status {
         TODO("À faire"),
         IN_PROGRESS("En cours"),
-        REVIEW("En révision"),
+       
         DONE("Terminé");
         
         private final String displayName;

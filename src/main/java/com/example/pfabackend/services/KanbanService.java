@@ -1,6 +1,7 @@
 package com.example.pfabackend.services;
 
 import com.example.pfabackend.entities.Kanban;
+import com.example.pfabackend.entities.Task;
 import com.example.pfabackend.entities.User;
 import com.example.pfabackend.repositories.KanbanRepository;
 import com.example.pfabackend.repositories.UserRepository;
@@ -98,5 +99,45 @@ public class KanbanService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         
         return kanbanRepository.findByNameContainingAndCreator(name, user);
+    }
+
+    /**
+     * Récupère toutes les tâches d'un kanban spécifique
+     */
+    public List<Task> getTasksByKanbanId(Long kanbanId, UserDetailsImpl userDetails) {
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+        Kanban kanban = kanbanRepository.findByIdAndCreator(kanbanId, user)
+                .orElseThrow(() -> new RuntimeException("Kanban not found or access denied"));
+        
+        return kanban.getTasks();
+    }
+
+    /**
+     * Récupère toutes les tâches d'un kanban spécifique
+     * @param kanbanId l'ID du kanban
+     * @param userId l'ID de l'utilisateur pour vérifier l'accès
+     * @return la liste des tâches du kanban
+     */
+    public List<Task> getTasksByKanbanId(Long kanbanId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+        Kanban kanban = kanbanRepository.findByIdAndCreator(kanbanId, user)
+                .orElseThrow(() -> new RuntimeException("Kanban not found or access denied"));
+        
+        return kanban.getTasks();
+    }
+
+    /**
+     * Récupère toutes les tâches d'un kanban spécifique sans vérification d'utilisateur
+     * Note: À utiliser uniquement dans un contexte où la sécurité est gérée à un autre niveau
+     */
+    public List<Task> getTasksByKanbanId(Long kanbanId) {
+        Kanban kanban = kanbanRepository.findById(kanbanId)
+                .orElseThrow(() -> new RuntimeException("Kanban not found"));
+        
+        return kanban.getTasks();
     }
 }

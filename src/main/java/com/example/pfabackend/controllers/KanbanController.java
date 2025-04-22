@@ -3,6 +3,7 @@ package com.example.pfabackend.controllers;
 import com.example.pfabackend.dto.KanbanRequest;
 import com.example.pfabackend.dto.KanbanResponse;
 import com.example.pfabackend.entities.Kanban;
+import com.example.pfabackend.entities.Task;
 import com.example.pfabackend.security.jwt.UserDetailsImpl;
 import com.example.pfabackend.services.KanbanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,5 +97,12 @@ public class KanbanController {
                 .map(KanbanResponse::fromKanban)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{kanbanId}/tasks")
+    @PreAuthorize("isAuthenticated()") // Garde encore la sécurisation au niveau du contrôleur
+    public ResponseEntity<List<Task>> getTasksByKanbanId(@PathVariable Long kanbanId) {
+        List<Task> tasks = kanbanService.getTasksByKanbanId(kanbanId);
+        return ResponseEntity.ok(tasks);
     }
 }
