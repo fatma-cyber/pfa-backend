@@ -47,21 +47,37 @@ public class TaskService {
         Kanban kanban = kanbanRepository.findById(kanbanId)
                 .orElseThrow(() -> new RuntimeException("Kanban non trouvé avec l'ID : " + kanbanId));
         
+        // S'assurer que la tâche est correctement liée au kanban
         task.setKanban(kanban);
         
-        // Assigner l'utilisateur si fourni
-        if (task.getAssignee() != null && task.getAssignee().getId() != null) {
-            User assignee = userRepository.findById(task.getAssignee().getId())
-                    .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
-            task.setAssignee(assignee);
+        try {
+            // Log pour débogage
+            System.out.println("Création de tâche: " + task.getTitle());
+            System.out.println("Status reçu: " + task.getStatus());
+            System.out.println("Priority reçue: " + task.getPriority());
+            System.out.println("KanbanId reçu: " + task.getKanban().getId());
+            
+            // Assigner l'utilisateur si fourni
+            if (task.getAssignee() != null && task.getAssignee().getId() != null) {
+                User assignee = userRepository.findById(task.getAssignee().getId())
+                        .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                task.setAssignee(assignee);
+            }
+            
+            // Vérifier et corriger les enums si nécessaire
+            if (task.getStatus() == null) {
+                task.setStatus(Task.Status.TODO);
+            }
+            
+            if (task.getPriority() == null) {
+                task.setPriority(Task.Priority.MEDIUM);
+            }
+            
+            return taskRepository.save(task);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
         }
-        
-        // Définir un statut par défaut si non spécifié
-        if (task.getStatus() == null) {
-            task.setStatus(Task.Status.TODO);
-        }
-        
-        return taskRepository.save(task);
     }
     
     /**

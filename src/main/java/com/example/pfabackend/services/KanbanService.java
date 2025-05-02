@@ -5,6 +5,7 @@ import com.example.pfabackend.entities.Task;
 import com.example.pfabackend.entities.User;
 import com.example.pfabackend.repositories.KanbanRepository;
 import com.example.pfabackend.repositories.UserRepository;
+import com.example.pfabackend.repositories.TaskRepository;  // Ajoutez cette injection
 // Correction de l'import - UserDetailsImpl est dans le package security.jwt
 import com.example.pfabackend.security.jwt.UserDetailsImpl;
 
@@ -24,6 +25,9 @@ public class KanbanService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TaskRepository taskRepository;  // Ajoutez cette injection
 
     /**
      * Récupère tous les kanbans d'un utilisateur
@@ -135,9 +139,26 @@ public class KanbanService {
      * Note: À utiliser uniquement dans un contexte où la sécurité est gérée à un autre niveau
      */
     public List<Task> getTasksByKanbanId(Long kanbanId) {
+        // Vérifiez d'abord que le kanban existe
         Kanban kanban = kanbanRepository.findById(kanbanId)
                 .orElseThrow(() -> new RuntimeException("Kanban not found"));
         
-        return kanban.getTasks();
+        // Au lieu d'utiliser kanban.getTasks(), utilisez directement le repository
+        return taskRepository.findByKanbanId(kanbanId);
+    }
+
+    /**
+     * Crée une tâche pour un kanban spécifique
+     */
+    @Transactional
+    public Task createTask(Long kanbanId, Task taskData) {
+        Kanban kanban = kanbanRepository.findById(kanbanId)
+                .orElseThrow(() -> new RuntimeException("Kanban not found"));
+        
+        taskData.setKanban(kanban);
+        kanban.getTasks().add(taskData);
+        kanbanRepository.save(kanban);
+        
+        return taskData;
     }
 }

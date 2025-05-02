@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
@@ -34,11 +34,26 @@ public class TaskController {
     
     @PostMapping("/kanban/{kanbanId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Task> createTask(
-            @PathVariable Long kanbanId,
-            @RequestBody Task task) {
-        Task createdTask = taskService.createTask(kanbanId, task);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+    public ResponseEntity<Task> createTask(@PathVariable Long kanbanId, @RequestBody Task task) {
+        System.out.println("========== CRÉATION DE TÂCHE ==========");
+        System.out.println("Kanban ID: " + kanbanId);
+        System.out.println("Titre: " + task.getTitle());
+        System.out.println("Description: " + task.getDescription());
+        System.out.println("Status: " + task.getStatus());
+        System.out.println("Priority: " + task.getPriority());
+        System.out.println("Kanban: " + (task.getKanban() != null ? task.getKanban().getId() : "null"));
+        System.out.println("Assignee: " + (task.getAssignee() != null ? task.getAssignee().getId() : "null"));
+        
+        try {
+            Task createdTask = taskService.createTask(kanbanId, task);
+            System.out.println("Tâche créée avec succès, ID: " + createdTask.getId());
+            return ResponseEntity.ok(createdTask);
+        } catch (Exception e) {
+            System.out.println("ERREUR lors de la création de la tâche:");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                   .body(null);
+        }
     }
     
     @PutMapping("/{id}")
