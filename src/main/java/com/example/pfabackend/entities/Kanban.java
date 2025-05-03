@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Getter
 @Setter
@@ -30,7 +32,7 @@ public class Kanban {
     @JoinColumn(name = "creator_id")
     private User creator;           // Utilisateur qui a créé le kanban
     
-    
+    @JsonIgnore
     @OneToMany(mappedBy = "kanban", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
     
