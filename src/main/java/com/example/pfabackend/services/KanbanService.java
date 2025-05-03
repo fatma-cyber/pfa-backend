@@ -3,6 +3,8 @@ package com.example.pfabackend.services;
 import com.example.pfabackend.entities.Kanban;
 import com.example.pfabackend.entities.Task;
 import com.example.pfabackend.entities.User;
+import com.example.pfabackend.exceptions.ForbiddenException;
+import com.example.pfabackend.exceptions.ResourceNotFoundException;
 import com.example.pfabackend.repositories.KanbanRepository;
 import com.example.pfabackend.repositories.UserRepository;
 import com.example.pfabackend.repositories.TaskRepository;  // Ajoutez cette injection
@@ -16,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
 
 @Service
 public class KanbanService {
@@ -62,15 +67,20 @@ public class KanbanService {
     }
 
     /**
-     * Met à jour un kanban existant
+     * Met à jour un kanban existant (accès étendu)
      */
     @Transactional
     public Kanban updateKanban(Long id, Kanban kanbanDetails, UserDetailsImpl userDetails) {
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         
-        Kanban kanban = kanbanRepository.findByIdAndCreator(id, user)
-                .orElseThrow(() -> new RuntimeException("Kanban not found or access denied"));
+        Kanban kanban = kanbanRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Kanban non trouvé avec l'ID : " + id));
+        
+        // Vérifier si l'utilisateur a accès (créateur ou assigné)
+        if (!userHasAccessToKanban(kanban, user)) {
+            throw new ForbiddenException("Vous n'avez pas accès à ce kanban");
+        }
         
         // Mise à jour des champs
         kanban.setName(kanbanDetails.getName());
@@ -82,15 +92,20 @@ public class KanbanService {
     }
 
     /**
-     * Supprime un kanban
+     * Supprime un kanban (accès étendu)
      */
     @Transactional
     public void deleteKanban(Long id, UserDetailsImpl userDetails) {
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         
-        Kanban kanban = kanbanRepository.findByIdAndCreator(id, user)
-                .orElseThrow(() -> new RuntimeException("Kanban not found or access denied"));
+        Kanban kanban = kanbanRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Kanban non trouvé avec l'ID : " + id));
+        
+        // Vérifier si l'utilisateur a accès (créateur ou assigné)
+        if (!userHasAccessToKanban(kanban, user)) {
+            throw new ForbiddenException("Vous n'avez pas accès à ce kanban");
+        }
         
         kanbanRepository.delete(kanban);
     }
@@ -160,5 +175,60 @@ public class KanbanService {
         kanbanRepository.save(kanban);
         
         return taskData;
+    }
+
+    /**
+     * Récupère tous les projets où l'utilisateur est impliqué (soit comme créateur, soit comme assigné à des tâches)
+     */
+    public List<Kanban> getProjectsInvolving(Long userId) {
+        // Récupère l'utilisateur
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'ID : " + userId));
+        
+        // Récupère tous les projets créés par l'utilisateur
+        List<Kanban> createdProjects = kanbanRepository.findByCreator(user);
+        
+        // Récupère tous les projets où l'utilisateur est assigné à au moins une tâche
+        List<Kanban> assignedProjects = kanbanRepository.findDistinctByTasks_Assignee(user);
+        
+        // Fusionne les deux listes en évitant les doublons
+        Set<Kanban> allProjects = new HashSet<>();
+        allProjects.addAll(createdProjects);
+        allProjects.addAll(assignedProjects);
+        
+        return new ArrayList<>(allProjects);
+    }
+
+    /**
+     * Vérifie si un utilisateur a accès à un kanban (créateur ou assigné à une tâche)
+     * @return true si l'utilisateur a accès, false sinon
+     */
+    private boolean userHasAccessToKanban(Kanban kanban, User user) {
+        // L'utilisateur est le créateur du kanban
+        if (kanban.getCreator() != null && kanban.getCreator().getId().equals(user.getId())) {
+            return true;
+        }
+        
+        // L'utilisateur est assigné à au moins une tâche du kanban
+        return kanban.getTasks().stream()
+                .anyMatch(task -> task.getAssignee() != null && 
+                        task.getAssignee().getId().equals(user.getId()));
+    }
+
+    /**
+     * Récupère un kanban par son ID avec une vérification d'accès étendue (créateur ou assigné)
+     */
+    public Kanban getKanbanByIdWithExtendedAccess(Long id, UserDetailsImpl userDetails) {
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+        Kanban kanban = kanbanRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Kanban non trouvé avec l'ID : " + id));
+        
+        if (!userHasAccessToKanban(kanban, user)) {
+            throw new ForbiddenException("Vous n'avez pas accès à ce kanban");
+        }
+        
+        return kanban;
     }
 }

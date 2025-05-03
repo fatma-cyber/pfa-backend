@@ -18,4 +18,9 @@ public interface KanbanRepository extends JpaRepository<Kanban, Long> {
     
     // Rechercher des kanbans par nom (contenant le terme de recherche)
     List<Kanban> findByNameContainingAndCreator(String name, User creator);
+    
+    /**
+     * Trouve tous les kanbans où l'utilisateur est assigné à au moins une tâche
+     */
+    List<Kanban> findDistinctByTasks_Assignee(User assignee);
 }

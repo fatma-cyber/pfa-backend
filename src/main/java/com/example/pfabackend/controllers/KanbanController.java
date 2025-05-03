@@ -4,12 +4,15 @@ import com.example.pfabackend.dto.KanbanRequest;
 import com.example.pfabackend.dto.KanbanResponse;
 import com.example.pfabackend.entities.Kanban;
 import com.example.pfabackend.entities.Task;
+import com.example.pfabackend.entities.User;
 import com.example.pfabackend.security.jwt.UserDetailsImpl;
 import com.example.pfabackend.services.KanbanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +25,7 @@ public class KanbanController {
 
     @Autowired
     private KanbanService kanbanService;
+    
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -39,7 +43,8 @@ public class KanbanController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         
-        Kanban kanban = kanbanService.getKanbanById(id, userDetails);
+        // Utiliser la méthode avec accès étendu
+        Kanban kanban = kanbanService.getKanbanByIdWithExtendedAccess(id, userDetails);
         return ResponseEntity.ok(KanbanResponse.fromKanban(kanban));
     }
 
@@ -104,5 +109,16 @@ public class KanbanController {
     public ResponseEntity<List<Task>> getTasksByKanbanId(@PathVariable Long kanbanId) {
         List<Task> tasks = kanbanService.getTasksByKanbanId(kanbanId);
         return ResponseEntity.ok(tasks);
+    }
+
+    /**
+     * Récupère tous les projets où l'utilisateur connecté est impliqué (créateur ou assigné)
+     */
+    @GetMapping("/involved")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<Kanban>> getProjectsWhereInvolved(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // Utiliser directement l'ID de l'utilisateur depuis UserDetailsImpl
+        List<Kanban> projects = kanbanService.getProjectsInvolving(userDetails.getId());
+        return ResponseEntity.ok(projects);
     }
 }
