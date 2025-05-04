@@ -29,52 +29,51 @@ import java.util.Arrays;
 public class WebSecurityConfig {
     @Autowired
     UserDetailsServiceImpl userDetailsService;
-    
+
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
-    
+
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
     }
-    
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        
+
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-        
+
         return authProvider;
     }
-    
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> 
-                        auth.requestMatchers("/api/auth/**").permitAll()
-                            .requestMatchers("/api/test/**").permitAll()
-                            .requestMatchers("/api/tasks/**").authenticated()  // Assurez-vous que cette ligne existe
-                            .requestMatchers("/api/kanbans/**").authenticated()  // Assurez-vous que cette ligne existe
-                            .anyRequest().authenticated()
-                );
-        
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/api/tasks/**").authenticated() // Assurez-vous que cette ligne existe
+                        .requestMatchers("/api/kanbans/**").authenticated() // Assurez-vous que cette ligne existe
+                        .requestMatchers("/api/comments**").authenticated() // Assurez-vous que cette ligne existe
+                        .anyRequest().authenticated());
+
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
 
@@ -86,10 +85,10 @@ public class WebSecurityConfig {
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        
+
         return source;
     }
 }

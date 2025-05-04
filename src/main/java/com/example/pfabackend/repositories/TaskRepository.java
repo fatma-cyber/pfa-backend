@@ -1,6 +1,8 @@
 package com.example.pfabackend.repositories;
 
 import com.example.pfabackend.entities.Task;
+import com.example.pfabackend.entities.User;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
