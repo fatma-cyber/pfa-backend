@@ -1,9 +1,11 @@
 package com.example.pfabackend.services;
 
+import com.example.pfabackend.entities.Comment;
 import com.example.pfabackend.entities.Kanban;
 import com.example.pfabackend.entities.Task;
 import com.example.pfabackend.entities.User;
 import com.example.pfabackend.exceptions.ResourceNotFoundException;
+import com.example.pfabackend.repositories.CommentRepository;
 import com.example.pfabackend.repositories.KanbanRepository;
 import com.example.pfabackend.repositories.TaskRepository;
 import com.example.pfabackend.repositories.UserRepository;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,6 +28,8 @@ public class TaskService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     /**
      * Récupère toutes les tâches
@@ -65,7 +70,8 @@ public class TaskService {
         // Gestion de l'assignation par email
         if (StringUtils.hasText(assigneeEmail)) {
             User assignee = userRepository.findByEmail(assigneeEmail)
-                    .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'email : " + assigneeEmail));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Utilisateur non trouvé avec l'email : " + assigneeEmail));
             taskData.setAssignee(assignee);
         } else {
             taskData.setAssignee(null); // Désassigner si l'email est vide/null
@@ -79,7 +85,18 @@ public class TaskService {
             taskData.setPriority(Task.Priority.MEDIUM);
         }
 
-        return taskRepository.save(taskData);
+        // Long idSavedTask = tasckSaved.getId();
+        Task taskSaved = taskRepository.save(taskData);
+        List<Comment> comments = new ArrayList<>(taskSaved.getComments());
+
+        for (Comment comment : comments) {
+            // taskSaved.addComment(comment);
+            comment.setTask(taskSaved);
+            commentRepository.save(comment);
+        }
+
+        return taskSaved;
+        // return taskRepository.save(taskData);
     }
 
     /**
@@ -90,7 +107,8 @@ public class TaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tâche non trouvée avec l'ID : " + id));
 
-        // Mise à jour des champs (sauf l'ID et le Kanban qui ne doivent pas changer ici)
+        // Mise à jour des champs (sauf l'ID et le Kanban qui ne doivent pas changer
+        // ici)
         task.setTitle(taskDetails.getTitle());
         task.setDescription(taskDetails.getDescription());
         // S'assurer que les enums ne sont pas null avant de les mettre à jour
@@ -107,11 +125,25 @@ public class TaskService {
         // Gestion de l'assignation par email
         if (StringUtils.hasText(assigneeEmail)) {
             User assignee = userRepository.findByEmail(assigneeEmail)
-                    .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'email : " + assigneeEmail));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Utilisateur non trouvé avec l'email : " + assigneeEmail));
             task.setAssignee(assignee);
         } else {
             task.setAssignee(null); // Désassigner si l'email est vide/null
         }
+
+        // Task taskUpdated = taskRepository.save(task);
+        List<Comment> comments = new ArrayList<>(taskDetails.getComments());
+        // System.out.println("comment******************* 1: " +
+        // taskDetails.getComments());
+        for (Comment comment : comments) {
+            // taskSaved.addComment(comment);
+            comment.setTask(task);
+            commentRepository.save(comment);
+            System.out.println("comment*******************2 : " + comment.getContent());
+        }
+
+        // return taskUpdated;
 
         return taskRepository.save(task);
     }
