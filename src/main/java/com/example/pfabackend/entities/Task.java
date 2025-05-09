@@ -46,7 +46,8 @@ public class Task {
     @JsonManagedReference
     private List<Comment> comments = new ArrayList<>();
 
-    @JsonIgnore
+    // @JsonIgnore
+    @JsonManagedReference
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Document> documents = new ArrayList<>();
 

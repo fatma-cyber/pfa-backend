@@ -1,11 +1,13 @@
 package com.example.pfabackend.services;
 
 import com.example.pfabackend.entities.Comment;
+import com.example.pfabackend.entities.Document;
 import com.example.pfabackend.entities.Kanban;
 import com.example.pfabackend.entities.Task;
 import com.example.pfabackend.entities.User;
 import com.example.pfabackend.exceptions.ResourceNotFoundException;
 import com.example.pfabackend.repositories.CommentRepository;
+import com.example.pfabackend.repositories.DocumentRepository;
 import com.example.pfabackend.repositories.KanbanRepository;
 import com.example.pfabackend.repositories.TaskRepository;
 import com.example.pfabackend.repositories.UserRepository;
@@ -30,6 +32,8 @@ public class TaskService {
     private UserRepository userRepository;
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private DocumentRepository documentRepository;
 
     /**
      * Récupère toutes les tâches
@@ -85,14 +89,19 @@ public class TaskService {
             taskData.setPriority(Task.Priority.MEDIUM);
         }
 
-        // Long idSavedTask = tasckSaved.getId();
         Task taskSaved = taskRepository.save(taskData);
+        // **Add comments to task and link comments to task ****/
         List<Comment> comments = new ArrayList<>(taskSaved.getComments());
-
         for (Comment comment : comments) {
-            // taskSaved.addComment(comment);
             comment.setTask(taskSaved);
             commentRepository.save(comment);
+        }
+
+        // **Add document to task and link document to task ****/
+        List<Document> documents = new ArrayList<>(taskSaved.getDocuments());
+        for (Document document : documents) {
+            document.setTask(taskSaved);
+            documentRepository.save(document);
         }
 
         return taskSaved;
