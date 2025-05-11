@@ -1,14 +1,30 @@
 package com.example.pfabackend.controllers;
 
+import com.example.pfabackend.entities.Comment;
+import com.example.pfabackend.entities.Document;
 import com.example.pfabackend.entities.Task;
 import com.example.pfabackend.exceptions.ResourceNotFoundException;
+import com.example.pfabackend.repositories.DocumentRepository;
+import com.example.pfabackend.services.DocumentService;
 import com.example.pfabackend.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +35,10 @@ public class TaskController {
 
     @Autowired
     private TaskService taskService;
+    @Autowired
+    private DocumentService documentService;
+    @Autowired
+    private DocumentRepository documentRepository;
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -41,14 +61,18 @@ public class TaskController {
     @PostMapping("/kanban/{kanbanId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> createTask(
+
             @PathVariable Long kanbanId,
+
             @RequestBody Task task,
+
             @RequestParam(required = false) String assigneeEmail) {
         try {
             Task createdTask = taskService.createTask(kanbanId, task, assigneeEmail);
             return ResponseEntity.ok(createdTask);
         } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message",
+                    e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

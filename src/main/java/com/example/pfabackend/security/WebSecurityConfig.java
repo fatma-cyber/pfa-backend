@@ -67,6 +67,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/tasks/**").authenticated() // Assurez-vous que cette ligne existe
+                        .requestMatchers("/api/tasks/kanban/**").authenticated() // Assurez-vous que cette ligne existe
+                        .requestMatchers("/api/documents/**").authenticated() // Assurez-vous que cette ligne existe
                         .requestMatchers("/api/kanbans/**").authenticated() // Assurez-vous que cette ligne existe
                         .requestMatchers("/api/comments**").authenticated() // Assurez-vous que cette ligne existe
                         .anyRequest().authenticated());

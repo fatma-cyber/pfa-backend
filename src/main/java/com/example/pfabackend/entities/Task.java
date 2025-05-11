@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Getter
@@ -39,11 +40,14 @@ public class Task {
     private String color; // Couleur de la carte pour l'affichage
     private Integer storyPoints; // Points d'histoire (pour l'estimation agile)
 
-    @JsonIgnore
+    // @JsonIgnore
+
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Comment> comments = new ArrayList<>();
 
-    @JsonIgnore
+    // @JsonIgnore
+    @JsonManagedReference
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Document> documents = new ArrayList<>();
 
@@ -53,7 +57,7 @@ public class Task {
 
     // Méthodes utilitaires pour les commentaires
     public void addComment(Comment comment) {
-        comments.add(comment);
+        this.comments.add(comment);
         comment.setTask(this);
     }
 
